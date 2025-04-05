@@ -53,7 +53,7 @@ namespace Arduino_Csharp_Serial_Communication_Control_a_Servo
 
                 serialPort1.Write(str_degree + "\n");
                 MessageBox.Show("Success Connected to Arduino Board");
-
+            
             }
             catch (Exception error)
             {
@@ -83,11 +83,11 @@ namespace Arduino_Csharp_Serial_Communication_Control_a_Servo
                 string currentID = textBox1.Text;
                 DateTime currentTime = DateTime.Now;
 
-                
+                // Check if this is the same ID scanned within cooldown period
                 if (currentID == lastScannedID &&
                     (currentTime - lastScanTime).TotalMilliseconds < scanCooldownMs)
                 {
-                    
+                    // Ignore this scan - it's too soon after the previous scan of the same ID
                     textBox1.Text = "";
                     return;
                 }
@@ -113,10 +113,10 @@ namespace Arduino_Csharp_Serial_Communication_Control_a_Servo
                                 {
                                     string statID = sdr["ID"].ToString();
                                     string statName = sdr["Name"].ToString();
-                                    string stat = sdr["Status"].ToString().Trim();
+                                    string stat = sdr["Status"].ToString().Trim(); 
                                     if (stat.Equals("Logged", StringComparison.OrdinalIgnoreCase))
                                     {
-
+                                      
                                         using (SqlConnection sqlConnection = new SqlConnection(AppHelper.ConnectionString))
                                         {
                                             using (SqlCommand sqlCmdEdit = new SqlCommand("Update dbo.Details set Status='Out' where ID=@ID", sqlConnection))
@@ -126,7 +126,7 @@ namespace Arduino_Csharp_Serial_Communication_Control_a_Servo
                                                 sqlCmdEdit.ExecuteNonQuery();
                                                 sqlConnection.Close();
 
-
+                                              
                                                 RefreshDataGridView(textBox1.Text);
 
                                                 if (serialPort1.IsOpen)
@@ -136,7 +136,7 @@ namespace Arduino_Csharp_Serial_Communication_Control_a_Servo
                                             }
                                         }
 
-
+                                       
                                         using (SqlConnection sqlConnection = new SqlConnection(AppHelper.ConnectionString))
                                         {
                                             sqlConnection.Open();
@@ -153,44 +153,7 @@ namespace Arduino_Csharp_Serial_Communication_Control_a_Servo
                                     }
                                     else
                                     {
-                                
-                                        bool canTimeIn = true;
-                                        DateTime today = DateTime.Now.Date;
-
-                                        using (SqlConnection sqlConnection = new SqlConnection(AppHelper.ConnectionString))
-                                        {
-                                            string checkQuery = @"
-                                                SELECT TOP 1 TimeOut 
-                                                FROM tbllogsheet 
-                                                WHERE ID=@ID 
-                                                  AND CONVERT(date, TimeOut) = @CurrentDate 
-                                                ORDER BY TimeOut DESC";
-
-                                            using (SqlCommand checkCmd = new SqlCommand(checkQuery, sqlConnection))
-                                            {
-                                                checkCmd.Parameters.AddWithValue("@ID", textBox1.Text);
-                                                checkCmd.Parameters.AddWithValue("@CurrentDate", today);
-
-                                                sqlConnection.Open();
-                                                object result = checkCmd.ExecuteScalar();
-                                                sqlConnection.Close();
-
-                                                if (result != null && result != DBNull.Value)
-                                                {
-                                                    
-                                                    canTimeIn = false;
-                                                }
-                                            }
-                                        }
-
-                                        if (!canTimeIn)
-                                        {
-                                            MessageBox.Show("You have already timed out today. You can only time in again tomorrow.");
-                                            textBox1.Text = "";
-                                            isProcessing = false;
-                                            return;
-                                        }
-
+                                       
                                         using (SqlConnection sqlConnection = new SqlConnection(AppHelper.ConnectionString))
                                         {
                                             using (SqlCommand sqlCmdEdit = new SqlCommand("Update dbo.Details set Status='Logged' where ID=@ID", sqlConnection))
@@ -200,7 +163,7 @@ namespace Arduino_Csharp_Serial_Communication_Control_a_Servo
                                                 sqlCmdEdit.ExecuteNonQuery();
                                                 sqlConnection.Close();
 
-
+                                               
                                                 RefreshDataGridView(textBox1.Text);
 
                                                 if (serialPort1.IsOpen)
@@ -210,7 +173,7 @@ namespace Arduino_Csharp_Serial_Communication_Control_a_Servo
                                             }
                                         }
 
-
+                          
                                         using (SqlConnection sqlConnection = new SqlConnection(AppHelper.ConnectionString))
                                         {
                                             sqlConnection.Open();
@@ -251,12 +214,12 @@ namespace Arduino_Csharp_Serial_Communication_Control_a_Servo
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-
+            
         }
 
         private void groupBox2_Enter(object sender, EventArgs e)
         {
-
+            
         }
 
         private void button1_Click(object sender, EventArgs e)
